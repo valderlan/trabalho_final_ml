@@ -1,0 +1,25 @@
+2025-12-01 20:33:47,992 - INFO - === Iniciando Análise Otimizada ===
+2025-12-01 20:33:48,581 - INFO - Shape Inicial: (281112, 48)
+2025-12-01 20:33:48,678 - INFO - Remoção de outliers desativada (recomendado para datasets de ataques).
+2025-12-01 20:33:48,692 - INFO - 
+=== Comparativo de Classes ===
+2025-12-01 20:33:48,692 - INFO - Classe                    | Antes      | Depois     | Perda     
+2025-12-01 20:33:48,693 - INFO - DDoS-UDP_Fragmentation    | 23426      | 23426      | 0         
+2025-12-01 20:33:48,693 - INFO - DDoS-SlowLoris            | 23426      | 23426      | 0         
+2025-12-01 20:33:48,693 - INFO - DDoS-ICMP_Flood           | 23426      | 23426      | 0         
+2025-12-01 20:33:48,693 - INFO - DDoS-ACK_Fragmentation    | 23426      | 23426      | 0         
+2025-12-01 20:33:48,693 - INFO - DDoS-HTTP_Flood           | 23426      | 23426      | 0         
+2025-12-01 20:33:48,693 - INFO - DDoS-SynonymousIP_Flood   | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - DDoS-PSHACK_Flood         | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - DDoS-RSTFINFlood          | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - DDoS-SYN_Flood            | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - DDoS-TCP_Flood            | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - DDoS-UDP_Flood            | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - DDoS-ICMP_Fragmentation   | 23426      | 23426      | 0         
+2025-12-01 20:33:48,694 - INFO - 
+Gerando gráficos otimizados...
+2025-12-01 20:33:52,321 - INFO - ----------------------------------------
+2025-12-01 20:33:52,321 - INFO - PROCESSAMENTO CONCLUÍDO
+2025-12-01 20:33:52,322 - INFO - SHAPE FINAL DO DATASET: Linhas=281112, Colunas=41
+2025-12-01 20:33:52,322 - INFO - ----------------------------------------
+2025-12-01 20:33:55,604 - INFO - Dataset salvo em: dataset/dataset_processed_final.csv
