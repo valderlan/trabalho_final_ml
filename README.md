@@ -1,6 +1,6 @@
 # Trabalho Final - Machine Learning
 
-## 📋 Sumário
+##  Sumário
 
 - [Visão Geral](#-visão-geral)
 - [Requisitos](#-requisitos)
@@ -17,7 +17,7 @@
 
 ---
 
-## 🎯 Visão Geral
+##  Visão Geral
 
 Este projeto implementa um **pipeline completo de Machine Learning** para classificação, desde o balanceamento de dados até a disponibilização de uma API REST para inferência. O sistema:
 
@@ -25,12 +25,21 @@ Este projeto implementa um **pipeline completo de Machine Learning** para classi
 2. **Analisa** os dados através de análise exploratória (EDA)
 3. **Pré-processa** e normaliza as features
 4. **Treina e compara** múltiplos modelos (Sklearn e PyTorch)
-5. **Exporta** o melhor modelo para ONNX
-6. **Serve** predições através de uma API FastAPI
+5. **Exporta** todos os modelos para ONNX
+6. **Serve** predições através de uma API FastAPI com **Dashboard interativo**
+
+###  Características da API
+
+-  **Dashboard HTML**: Interface visual completa com métricas e estatísticas
+-  **Multi-modelo**: Carregamento automático de todos os modelos ONNX
+-  **Seleção dinâmica**: Escolha qual modelo usar em cada predição
+-  **Métricas em tempo real**: Visualize performance de todos os modelos
+-  **Comparação**: Compare predições de diferentes modelos
+-  **Estatísticas EDA**: Dados da análise exploratória integrados ao dashboard
 
 ---
 
-## 📦 Requisitos
+##  Requisitos
 
 - **Python**: 3.13+
 - **Dependências**: Definidas em `pyproject.toml`
@@ -46,7 +55,7 @@ Este projeto implementa um **pipeline completo de Machine Learning** para classi
 
 ---
 
-## 🚀 Instalação
+##  Instalação
 
 ### 1. Clone o repositório
 
@@ -69,7 +78,23 @@ pip install -e .
 
 ---
 
-## 🔄 Pipeline Completo
+##  Quick Start
+
+Se você já tem os dados processados e modelos treinados, pode iniciar a API diretamente:
+
+```bash
+python app.py
+```
+
+Então acesse:
+-  **Dashboard**: http://localhost:8000/
+-  **API Docs**: http://localhost:8000/docs
+
+Para rodar o pipeline completo do zero, veja a seção [Pipeline Completo](#-pipeline-completo).
+
+---
+
+##  Pipeline Completo
 
 ### Etapa 1: Balanceamento do Dataset
 
@@ -279,26 +304,75 @@ O modelo com **maior F1-Score Macro no conjunto de teste** é escolhido como o m
 
 **Arquivo:** `app.py`
 
-**Objetivo:** Disponibilizar uma API REST para realizar predições usando o melhor modelo treinado.
+**Objetivo:** Disponibilizar uma API REST completa com dashboard interativo e predições usando múltiplos modelos ONNX.
 
 #### Arquitetura:
 
 - **Framework**: FastAPI (moderna, rápida, assíncrona)
 - **Inferência**: ONNX Runtime (otimizado para produção)
 - **Servidor**: Uvicorn (ASGI server)
+- **Dashboard**: Interface web HTML integrada
 
-#### Inicialização:
+#### Inicialização (Lifespan):
 
-No startup, a API carrega:
-1. `json/metadata.json`: Configurações do modelo
-2. `models/scaler.pkl`: Para normalização dos inputs
-3. `models/best_model.onnx`: Modelo para inferência
+No startup, a API carrega automaticamente:
 
-#### Endpoint Disponível:
+1. **Metadados e Relatórios:**
+   - `json/metadata.json`: Configurações dos modelos (features, classes)
+   - `json/eda_report.json`: Estatísticas da análise exploratória
+   - `json/training_metrics.json`: Métricas de performance dos modelos
 
-**POST** `/predict`
+2. **Artefatos de ML:**
+   - `models/scaler.pkl`: StandardScaler para normalização
+   - `models/*.onnx`: **TODOS** os modelos ONNX disponíveis (não apenas o best_model)
 
-Recebe um JSON com as features e retorna a predição.
+3. **Carregamento Dinâmico:**
+   - A API detecta e carrega automaticamente todos os arquivos `.onnx` na pasta `models/`
+   - Cada modelo fica disponível para inferência individual
+
+#### Endpoints Disponíveis:
+
+##### 1. **GET** `/` - Dashboard Interativo
+
+Página principal com dashboard HTML contendo:
+
+-  **Status da API**: Indicador de saúde e modelos carregados
+-  **Tabela de Performance**: Comparação de todos os modelos com métricas
+  - Accuracy, F1-Score, Recall, Precision, MCC, Log Loss
+  - Overfitting Gap (diferença entre treino e teste)
+  - Destaque visual do melhor modelo
+-  **Estatísticas do Dataset**:
+  - Total de amostras e features
+  - Colunas removidas durante EDA
+  - Distribuição de classes
+-  **Detalhes Expandíveis**:
+  - Estatísticas descritivas de cada feature (média, desvio, min, max, mediana)
+  - Análise de perda por classe durante limpeza
+-  **Link direto** para `/docs` (Swagger)
+
+**Acesso:** `http://localhost:8000/`
+
+##### 2. **POST** `/predict` - Inferência com Seleção de Modelo
+
+Realiza predições usando o modelo especificado (padrão: `best_model`).
+
+**Parâmetros:**
+```json
+{
+  "features": [0.5, 1.2, -0.3, ...],
+  "model_name": "RandomForest"  // Opcional, padrão = "best_model"
+}
+```
+
+**Modelos disponíveis para seleção:**
+- `best_model` (padrão)
+- `LogisticRegression`
+- `KNN`
+- `DecisionTree`
+- `RandomForest`
+- `ExtraTrees`
+- `MLP_Sklearn`
+- `CNN_PyTorch`
 
 #### Execução:
 
@@ -313,21 +387,70 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 
 **Servidor rodando em:** `http://localhost:8000`
 
-**Documentação interativa:**
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+**Recursos disponíveis:**
+-  Dashboard: `http://localhost:8000/`
+-  Swagger UI: `http://localhost:8000/docs`
+-  ReDoc: `http://localhost:8000/redoc`
+
+#### Principais Funcionalidades da API:
+
+
+1. **Dashboard HTML Completo** (`GET /`):
+   - Interface visual rica e responsiva
+   - Tabela comparativa com todos os modelos e suas métricas
+   - Destaque automático do melhor modelo (fundo verde)
+   - Estatísticas do dataset (amostras, features, classes)
+   - Estatísticas descritivas detalhadas (média, desvio, mediana, etc.)
+   - Distribuição de classes com análise de perda
+   - Seções expandíveis para detalhes adicionais
+   - Link direto para `/docs`
+
+2. **Carregamento Multi-Modelo Automático**:
+   - Detecta e carrega **todos** os modelos `.onnx` da pasta `models/`
+   - Não apenas o `best_model`, mas todos os modelos treinados
+   - Possibilita comparação em tempo real
+
+3. **Seleção Dinâmica de Modelo** (`POST /predict`):
+   - Parâmetro opcional `model_name` para escolher o modelo
+   - Se omitido, usa `best_model` como padrão
+   - Resposta inclui qual modelo foi utilizado
+
+4. **Integração com Relatórios JSON**:
+   - Carrega automaticamente `eda_report.json`, `metadata.json` e `training_metrics.json`
+   - Exibe métricas de performance de todos os modelos
+   - Mostra estatísticas da análise exploratória
+   - Apresenta overfitting gap (diferença treino vs teste)
+
+5. **Validação Robusta**:
+   - Verifica existência do modelo solicitado
+   - Valida número de features
+   - Mensagens de erro descritivas com modelos disponíveis
 
 ---
 
-## 🔌 Uso da API
+##  Uso da API
 
-### 1. Verificar se a API está rodando
+### 1. Acessar o Dashboard
 
-Acesse no navegador: `http://localhost:8000/docs`
+Abra o navegador e acesse: `http://localhost:8000/`
+
+Você verá uma interface completa com:
+- Status da API e modelos carregados
+- Comparação de performance de todos os modelos
+- Estatísticas detalhadas do dataset
+- Destaque do melhor modelo
 
 ### 2. Fazer uma predição
 
-#### Via cURL:
+#### Opção A: Via Dashboard (Swagger UI)
+
+1. Acesse: `http://localhost:8000/docs`
+2. Clique em **POST /predict**
+3. Clique em **Try it out**
+4. Insira o JSON de entrada
+5. Clique em **Execute**
+
+#### Opção B: Via cURL (usando modelo padrão)
 
 ```bash
 curl -X POST "http://localhost:8000/predict" \
@@ -337,7 +460,18 @@ curl -X POST "http://localhost:8000/predict" \
   }'
 ```
 
-#### Via Python:
+#### Opção C: Via cURL (selecionando modelo específico)
+
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "features": [0.5, 1.2, -0.3, 0.8, 1.5, 0.2, -0.7, 0.9, 0.4, -0.1],
+    "model_name": "RandomForest"
+  }'
+```
+
+#### Opção D: Via Python (modelo padrão)
 
 ```python
 import requests
@@ -351,34 +485,120 @@ response = requests.post(url, json=data)
 print(response.json())
 ```
 
+#### Opção E: Via Python (selecionando modelo)
+
+```python
+import requests
+
+url = "http://localhost:8000/predict"
+
+# Testando com diferentes modelos
+modelos = ["best_model", "RandomForest", "KNN", "CNN_PyTorch"]
+
+for modelo in modelos:
+    data = {
+        "features": [0.5, 1.2, -0.3, 0.8, 1.5, 0.2, -0.7, 0.9, 0.4, -0.1],
+        "model_name": modelo
+    }
+    
+    response = requests.post(url, json=data)
+    resultado = response.json()
+    print(f"{modelo}: {resultado['class_name']} (ID: {resultado['prediction_id']})")
+```
+
 #### Resposta esperada:
 
 ```json
 {
   "prediction_id": 1,
   "class_name": "ClasseA",
+  "model_used": "RandomForest",
   "model_type": "ONNX Inference"
 }
 ```
 
-### 3. Validações:
+### 3. Validações Automáticas:
 
 A API valida automaticamente:
-- ✅ Número correto de features
-- ✅ Tipos de dados válidos
-- ✅ Modelo carregado corretamente
+-  Número correto de features
+-  Tipos de dados válidos
+-  Modelo especificado existe
+-  Artefatos carregados corretamente
 
-#### Erro se número de features incorreto:
+#### Exemplos de Erros:
 
+**Erro 1: Número de features incorreto**
 ```json
 {
   "detail": "Esperado 10 features."
 }
 ```
 
----
+**Erro 2: Modelo não encontrado**
+```json
+{
+  "detail": "Modelo 'SVM' não encontrado. Opções disponíveis: ['best_model', 'LogisticRegression', 'KNN', 'DecisionTree', 'RandomForest', 'ExtraTrees', 'MLP_Sklearn', 'CNN_PyTorch']"
+}
+```
 
-## 📁 Estrutura do Projeto
+### 4. Comparação de Modelos
+
+Use o endpoint `/predict` com diferentes valores de `model_name` para comparar as predições de múltiplos modelos no mesmo input:
+
+```python
+import requests
+
+features = [0.5, 1.2, -0.3, 0.8, 1.5, 0.2, -0.7, 0.9, 0.4, -0.1]
+
+modelos = ["best_model", "RandomForest", "KNN", "LogisticRegression"]
+resultados = {}
+
+for modelo in modelos:
+    response = requests.post(
+        "http://localhost:8000/predict",
+        json={"features": features, "model_name": modelo}
+    )
+    resultados[modelo] = response.json()
+
+# Exibir comparação
+for modelo, resultado in resultados.items():
+    print(f"{modelo:20} -> {resultado['class_name']}")
+```
+
+### 5. Visualizar Métricas no Dashboard
+
+O dashboard HTML (`http://localhost:8000/`) apresenta informações detalhadas:
+
+#### Seção 1: Status e Modelos Carregados
+- Badge de status (ONLINE)
+- Total de modelos carregados
+- Nome do melhor modelo destacado
+- Tags com todos os modelos disponíveis
+
+#### Seção 2: Performance dos Modelos
+Tabela comparativa ordenada por F1-Score com:
+- **Accuracy**: Acurácia geral
+- **F1-Macro**: Média harmônica (métrica principal)
+- **Recall**: Taxa de verdadeiros positivos
+- **Precision**: Taxa de acerto das predições
+- **MCC**: Correlação de Matthews
+- **Log Loss**: Perda logarítmica (quando aplicável)
+- **Overfitting Gap**: Diferença entre métricas de treino e teste
+- **Destaque verde** no melhor modelo
+
+#### Seção 3: Estatísticas do Dataset
+- Cards com totais: amostras, features, colunas removidas
+- Colunas ignoradas durante EDA (em vermelho)
+- **Estatísticas Descritivas** (expandível):
+  - Tabela com média, desvio padrão, mínimo, mediana, máximo de cada feature
+- **Distribuição de Classes** (expandível):
+  - Quantidade final de cada classe
+  - Perda durante limpeza (outliers, NaN)
+
+
+
+
+##  Estrutura do Projeto
 
 ```
 trabalho_final_ml/
@@ -432,7 +652,7 @@ trabalho_final_ml/
 
 ---
 
-## 📊 Artefatos Gerados
+##  Artefatos Gerados
 
 ### Datasets:
 - `dataset_balanceado.csv`: Classes equilibradas
@@ -463,7 +683,63 @@ trabalho_final_ml/
 
 ---
 
-## 🎓 Fluxo Completo de Execução
+## Interface do Dashboard
+
+O dashboard web (`http://localhost:8000/`) oferece uma interface completa e intuitiva:
+
+### Recursos Visuais:
+
+#### 1. Cabeçalho com Status
+- Badge verde "ONLINE" indicando disponibilidade
+- Contador de modelos carregados
+- Nome do melhor modelo em destaque
+- Botão para acesso rápido à documentação da API
+
+#### 2. Tabela de Performance
+- Linha do melhor modelo com **fundo verde** para fácil identificação
+- Colunas ordenadas por F1-Score (métrica principal)
+- Hover nas linhas muda a cor de fundo para melhor leitura
+- Todas as 7 métricas principais exibidas
+
+#### 3. Cards de Estatísticas
+- Design tipo "card" com fundo cinza claro
+- Números grandes e destacados
+- Subtítulos com valores originais para comparação
+
+#### 4. Seções Expandíveis
+- **Estatísticas Descritivas**: Clique para expandir e ver tabela completa
+- **Distribuição de Classes**: Clique para ver análise de perda
+- Ícones indicam se está expandido ou recolhido
+
+#### 5. Estilo Moderno
+- Paleta de cores profissional (azul, verde, cinza)
+- Fonte "Segoe UI" para melhor legibilidade
+- Sombras sutis nos cards para profundidade
+- Responsivo e otimizado para diferentes tamanhos de tela
+- Scroll automático em tabelas grandes
+
+### Informações Apresentadas:
+
+**Sobre os Modelos:**
+- Nome, acurácia, F1-Score, recall, precision
+- MCC (Matthews Correlation Coefficient)
+- Log Loss
+- Overfitting Gap (diferença treino vs teste)
+
+**Sobre o Dataset:**
+- Total de amostras (original e final)
+- Número de features
+- Colunas removidas durante limpeza
+- Distribuição de cada classe
+- Perda de amostras por classe
+
+**Sobre as Features:**
+- Média, desvio padrão, mínimo, máximo, mediana
+- Tabela completa com todas as features processadas
+
+---
+
+##  Fluxo Completo de Execução
 
 Para executar o pipeline completo do zero:
 
@@ -485,14 +761,14 @@ python app.py
 ```
 
 Após esses passos, você terá:
-- ✅ Dataset balanceado e limpo
-- ✅ Visualizações e relatórios
-- ✅ 7 modelos treinados e comparados
-- ✅ API REST servindo o melhor modelo
+-  Dataset balanceado e limpo
+-  Visualizações e relatórios
+-  7 modelos treinados e comparados
+-  API REST servindo o melhor modelo
 
 ---
 
-## 🔧 Customizações
+##  Customizações
 
 ### Adicionar novos modelos:
 
@@ -530,25 +806,23 @@ test_size = 0.3  # 30% para teste
 
 ---
 
-## 📝 Notas Importantes
+##  Notas Importantes
 
 1. **Memória**: O balanceamento em streaming permite processar datasets grandes sem problemas
 2. **ONNX**: Formato universal para modelos, possibilita deploy em diversas plataformas
 3. **Grid Search**: Pode ser demorado para modelos complexos; ajuste os grids conforme necessário
 4. **Logs**: Sempre verifique os logs em caso de erros
-5. **API**: Em produção, considere adicionar autenticação e rate limiting
+5. **API Completa**: 
+   - **Dashboard HTML**: Interface visual completa na página inicial (`/`)
+   - **Multi-modelo**: Todos os modelos ONNX são carregados automaticamente
+   - **Seleção de modelo**: Escolha qual modelo usar para cada predição
+   - **Métricas em tempo real**: Visualize performance e estatísticas dos modelos
+   - **Comparação**: Compare predições de diferentes modelos no mesmo input
+6. **Dashboard Interativo**: Acesse `http://localhost:8000/` para ver:
+   - Comparação visual de todos os modelos
+   - Estatísticas do dataset (EDA)
+   - Melhor modelo destacado
+   - Link direto para testar a API
 
 ---
 
-## 🤝 Contribuições
-
-Este projeto é parte do trabalho final da disciplina de Machine Learning e Mineração de Dados.
-
-**Autor:** Valderlan  
-**Repositório:** [github.com/valderlan/trabalho_final_ml](https://github.com/valderlan/trabalho_final_ml)
-
----
-
-## 📄 Licença
-
-[Especifique a licença aqui]
