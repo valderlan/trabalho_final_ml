@@ -2,9 +2,15 @@
 
 ##  Sumário
 
+- [Descrição do Problema](#-descrição-do-problema)
+- [Solução Desenvolvida](#-solução-desenvolvida)
 - [Visão Geral](#-visão-geral)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Requisitos](#-requisitos)
 - [Instalação](#-instalação)
+- [Como Executar](#-como-executar)
+  - [Opção 1: Executar Pipeline Completo](#opção-1-executar-pipeline-completo)
+  - [Opção 2: Carregar Modelos Treinados](#opção-2-carregar-modelos-treinados)
 - [Pipeline Completo](#-pipeline-completo)
   - [Etapa 1: Balanceamento do Dataset](#etapa-1-balanceamento-do-dataset)
   - [Etapa 2: Análise Exploratória (EDA)](#etapa-2-análise-exploratória-eda)
@@ -12,8 +18,80 @@
   - [Etapa 4: Treinamento dos Modelos](#etapa-4-treinamento-dos-modelos)
   - [Etapa 5: Servindo a API](#etapa-5-servindo-a-api)
 - [Uso da API](#-uso-da-api)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Artefatos Gerados](#-artefatos-gerados)
+
+---
+
+## Descrição do Problema
+
+Este projeto aborda o desafio de **classificação de dados** utilizando Machine Learning, com foco em:
+
+### Problema Principal:
+Desenvolver um sistema completo de classificação que seja capaz de:
+- Lidar com **dados desbalanceados** (classes com quantidades diferentes de amostras)
+- **Comparar múltiplos algoritmos** de ML para identificar o mais adequado
+- **Implantar em produção** de forma eficiente e escalável
+- Fornecer **interpretabilidade** dos resultados e métricas de performance
+
+### Desafios Técnicos:
+1. **Balanceamento de grandes datasets**: Processar arquivos CSV grandes sem sobrecarregar a memória
+2. **Limpeza e preparação**: Identificar e remover outliers, valores ausentes e features irrelevantes
+3. **Seleção de modelo**: Avaliar comparativamente diferentes algoritmos (clássicos e deep learning)
+4. **Otimização**: Grid Search para encontrar os melhores hiperparâmetros de cada modelo
+5. **Deployment**: Exportar para formato universal e servir via API REST
+
+---
+
+## Solução Desenvolvida
+
+A solução implementa um **pipeline end-to-end automatizado** que resolve todos os desafios:
+
+### Componentes Principais:
+
+#### 1.  **Balanceamento Inteligente** (`balancear_dataset.py`)
+- Undersampling em streaming (processa em chunks de 200k linhas)
+- Equilibra todas as classes ao tamanho da minoritária
+- Eficiente em memória para grandes volumes de dados
+
+#### 2.  **Análise Exploratória Automatizada** (`EDA.py`)
+- Remoção automática de outliers usando método IQR
+- Limpeza de valores ausentes (NaN)
+- Geração de visualizações (distribuição de classes, matriz de correlação)
+- Relatório completo em JSON com todas as estatísticas
+
+#### 3.  **Pré-processamento Robusto** (`preprocessing.py`)
+- Normalização com StandardScaler (média=0, desvio=1)
+- Codificação de labels categóricas
+- Divisão estratificada treino/teste (80/20)
+- Persistência de transformadores para uso em produção
+
+#### 4.  **Treinamento Comparativo** (`train.py`)
+- **7 modelos** treinados simultaneamente:
+  - Logistic Regression, KNN, Decision Tree
+  - Random Forest, Extra Trees, MLP (Sklearn)
+  - CNN 1D (PyTorch)
+- **Grid Search** com validação cruzada (5-fold)
+- **6 métricas** de avaliação: Accuracy, F1-Score, Recall, Precision, MCC, Log Loss
+- Exportação universal para **ONNX**
+- Seleção automática do melhor modelo (maior F1-Score)
+
+#### 5.  **API REST Completa** (`app.py`)
+- Framework **FastAPI** moderno e assíncrono
+- **Dashboard HTML interativo** integrado:
+  - Comparação visual de todos os modelos
+  - Estatísticas do dataset (EDA)
+  - Métricas de performance em tempo real
+- **Inferência ONNX** otimizada
+- **Seleção dinâmica** de modelo via API
+- Documentação automática (Swagger UI + ReDoc)
+
+### Resultados Obtidos:
+-  Pipeline totalmente automatizado e reproduzível
+-  7 modelos treinados, otimizados e comparados
+-  Melhor modelo selecionado automaticamente
+-  API REST pronta para produção
+-  Dashboard para monitoramento e análise
+-  Relatórios completos (JSON, CSV, gráficos)
 
 ---
 
@@ -78,19 +156,118 @@ pip install -e .
 
 ---
 
-##  Quick Start
+##  Como Executar
 
-Se você já tem os dados processados e modelos treinados, pode iniciar a API diretamente:
+Existem duas formas de usar este projeto:
+
+### Opção 1: Executar Pipeline Completo
+
+Para treinar os modelos do zero com seus próprios dados:
 
 ```bash
+# Passo 1: Balancear o dataset
+python balancear_dataset.py
+
+# Passo 2: Análise exploratória e limpeza
+python EDA.py
+
+# Passo 3: Pré-processar dados
+python preprocessing.py
+
+# Passo 4: Treinar todos os modelos
+python train.py
+
+# Passo 5: Iniciar a API
 python app.py
 ```
 
-Então acesse:
--  **Dashboard**: http://localhost:8000/
--  **API Docs**: http://localhost:8000/docs
+**Observação:** Edite os scripts para apontar para seu arquivo CSV de entrada.
 
-Para rodar o pipeline completo do zero, veja a seção [Pipeline Completo](#-pipeline-completo).
+### Opção 2: Carregar Modelos Treinados
+
+Se você já possui os modelos treinados (arquivos `.onnx`, `scaler.pkl`, etc.) na pasta `models/`:
+
+```bash
+# Inicia a API diretamente
+python app.py
+```
+
+**Acesse:**
+-  **Dashboard**: http://localhost:8000/
+-  **API Docs (Swagger)**: http://localhost:8000/docs
+-  **ReDoc**: http://localhost:8000/redoc
+
+### Executar com Uvicorn (alternativa):
+
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+O parâmetro `--reload` permite hot-reload durante desenvolvimento.
+
+---
+
+##  Estrutura do Projeto
+
+Organização das pastas e arquivos do repositório:
+
+```
+trabalho_final_ml/
+├── app.py                          # API FastAPI com dashboard
+├── balancear_dataset.py            # Script de balanceamento
+├── EDA.py                          # Análise exploratória
+├── preprocessing.py                # Pré-processamento
+├── train.py                        # Treinamento de modelos
+├── pyproject.toml                  # Dependências do projeto
+├── README.md                       # Esta documentação
+├── relatorio_comparativo.md        # Relatório de comparação
+│
+├── dataset/                        # Dados
+│   ├── dataset_balanceado.csv      # Dataset após balanceamento
+│   ├── dataset_processed_final.csv # Dataset limpo (pós-EDA)
+│   └── processed/                  # Arrays NumPy processados
+│       ├── X_train.npy             # Features de treino
+│       ├── X_test.npy              # Features de teste
+│       ├── y_train.npy             # Labels de treino
+│       ├── y_test.npy              # Labels de teste
+│       └── model_comparison_results.csv # Comparação de modelos
+│
+├── models/                         # Modelos treinados
+│   ├── best_model.onnx             # Melhor modelo (selecionado)
+│   ├── scaler.pkl                  # Normalizador (StandardScaler)
+│   ├── label_encoder.pkl           # Codificador de labels
+│   ├── LogisticRegression.onnx     # Modelo: Regressão Logística
+│   ├── KNN.onnx                    # Modelo: K-Nearest Neighbors
+│   ├── DecisionTree.onnx           # Modelo: Árvore de Decisão
+│   ├── RandomForest.onnx           # Modelo: Random Forest
+│   ├── ExtraTrees.onnx             # Modelo: Extra Trees
+│   ├── MLP_Sklearn.onnx            # Modelo: MLP (Sklearn)
+│   └── CNN_PyTorch.onnx            # Modelo: CNN (PyTorch)
+│
+├── figures/                        # Visualizações
+│   ├── class_distribution.png      # Distribuição de classes
+│   ├── correlation_matrix.png      # Matriz de correlação
+│   ├── cm_*.png                    # Matrizes de confusão
+│   └── feature_importance_*.png    # Importância das features
+│
+├── json/                           # Metadados e relatórios
+│   ├── metadata.json               # Configurações (n_features, classes)
+│   ├── eda_report.json             # Relatório da EDA
+│   └── training_metrics.json      # Métricas de todos os modelos
+│
+└── logs/                           # Logs de execução
+    ├── eda_report.log              # Log da análise exploratória
+    ├── preprocessing.log           # Log do pré-processamento
+    └── training.log                # Log do treinamento
+```
+
+### Descrição das Pastas:
+
+- **`dataset/`**: Armazena datasets em diferentes estágios (original, balanceado, processado)
+- **`models/`**: Contém todos os modelos exportados em ONNX + artefatos (scaler, encoder)
+- **`figures/`**: Visualizações geradas automaticamente (gráficos, matrizes de confusão)
+- **`json/`**: Metadados e relatórios estruturados em JSON
+- **`logs/`**: Logs detalhados de cada etapa do pipeline
 
 ---
 
@@ -596,60 +773,6 @@ Tabela comparativa ordenada por F1-Score com:
   - Perda durante limpeza (outliers, NaN)
 
 
-
-
-##  Estrutura do Projeto
-
-```
-trabalho_final_ml/
-├── app.py                          # API FastAPI
-├── balancear_dataset.py            # Balanceamento de classes
-├── EDA.py                          # Análise exploratória
-├── preprocessing.py                # Pré-processamento
-├── train.py                        # Treinamento de modelos
-├── pyproject.toml                  # Dependências e metadados
-├── README.md                       # Esta documentação
-├── relatorio_comparativo.md        # Comparação de modelos
-│
-├── dataset/                        # Dados
-│   ├── dataset_balanceado.csv      # Dataset balanceado
-│   ├── dataset_processed_final.csv # Dataset limpo (EDA)
-│   └── processed/                  # Arrays NumPy
-│       ├── X_train.npy
-│       ├── X_test.npy
-│       ├── y_train.npy
-│       ├── y_test.npy
-│       └── model_comparison_results.csv
-│
-├── models/                         # Modelos treinados
-│   ├── best_model.onnx             # Melhor modelo
-│   ├── scaler.pkl                  # StandardScaler
-│   ├── label_encoder.pkl           # LabelEncoder
-│   ├── LogisticRegression.onnx
-│   ├── KNN.onnx
-│   ├── DecisionTree.onnx
-│   ├── RandomForest.onnx
-│   ├── ExtraTrees.onnx
-│   ├── MLP_Sklearn.onnx
-│   └── CNN_PyTorch.onnx
-│
-├── figures/                        # Visualizações
-│   ├── class_distribution.png
-│   ├── correlation_matrix.png
-│   ├── cm_*.png                    # Matrizes de confusão
-│   └── feature_importance_*.png
-│
-├── json/                           # Metadados e relatórios
-│   ├── metadata.json               # Configurações do modelo
-│   ├── eda_report.json             # Relatório da EDA
-│   └── training_metrics.json      # Métricas de treinamento
-│
-└── logs/                           # Logs de execução
-    ├── eda_report.log
-    ├── preprocessing.log
-    └── training.log
-```
-
 ---
 
 ##  Artefatos Gerados
@@ -681,148 +804,34 @@ trabalho_final_ml/
 - `preprocessing.log`: Log do pré-processamento
 - `training.log`: Log detalhado do treinamento
 
----
+## Resumo do Projeto
 
-## Interface do Dashboard
+### Tecnologias Utilizadas:
+- **Python 3.13+**
+- **Scikit-learn**: Modelos clássicos de ML
+- **PyTorch**: Deep Learning (CNN)
+- **FastAPI**: API REST moderna
+- **ONNX**: Formato universal de modelos
+- **Pandas/NumPy**: Manipulação de dados
+- **Matplotlib/Seaborn**: Visualizações
 
-O dashboard web (`http://localhost:8000/`) oferece uma interface completa e intuitiva:
+### Modelos Implementados:
+1. Logistic Regression
+2. K-Nearest Neighbors (KNN)
+3. Decision Tree
+4. Random Forest
+5. Extra Trees
+6. Multi-Layer Perceptron (MLP)
+7. Convolutional Neural Network (CNN)
 
-### Recursos Visuais:
-
-#### 1. Cabeçalho com Status
-- Badge verde "ONLINE" indicando disponibilidade
-- Contador de modelos carregados
-- Nome do melhor modelo em destaque
-- Botão para acesso rápido à documentação da API
-
-#### 2. Tabela de Performance
-- Linha do melhor modelo com **fundo verde** para fácil identificação
-- Colunas ordenadas por F1-Score (métrica principal)
-- Hover nas linhas muda a cor de fundo para melhor leitura
-- Todas as 7 métricas principais exibidas
-
-#### 3. Cards de Estatísticas
-- Design tipo "card" com fundo cinza claro
-- Números grandes e destacados
-- Subtítulos com valores originais para comparação
-
-#### 4. Seções Expandíveis
-- **Estatísticas Descritivas**: Clique para expandir e ver tabela completa
-- **Distribuição de Classes**: Clique para ver análise de perda
-- Ícones indicam se está expandido ou recolhido
-
-#### 5. Estilo Moderno
-- Paleta de cores profissional (azul, verde, cinza)
-- Fonte "Segoe UI" para melhor legibilidade
-- Sombras sutis nos cards para profundidade
-- Responsivo e otimizado para diferentes tamanhos de tela
-- Scroll automático em tabelas grandes
-
-### Informações Apresentadas:
-
-**Sobre os Modelos:**
-- Nome, acurácia, F1-Score, recall, precision
-- MCC (Matthews Correlation Coefficient)
+### Métricas de Avaliação:
+- Accuracy
+- F1-Score (Macro)
+- Recall (Macro)
+- Precision (Macro)
+- Matthews Correlation Coefficient (MCC)
 - Log Loss
-- Overfitting Gap (diferença treino vs teste)
 
-**Sobre o Dataset:**
-- Total de amostras (original e final)
-- Número de features
-- Colunas removidas durante limpeza
-- Distribuição de cada classe
-- Perda de amostras por classe
 
-**Sobre as Features:**
-- Média, desvio padrão, mínimo, máximo, mediana
-- Tabela completa com todas as features processadas
 
----
-
-##  Fluxo Completo de Execução
-
-Para executar o pipeline completo do zero:
-
-```bash
-# 1. Balancear o dataset
-python balancear_dataset.py
-
-# 2. Realizar análise exploratória
-python EDA.py
-
-# 3. Pré-processar os dados
-python preprocessing.py
-
-# 4. Treinar todos os modelos
-python train.py
-
-# 5. Iniciar a API
-python app.py
-```
-
-Após esses passos, você terá:
--  Dataset balanceado e limpo
--  Visualizações e relatórios
--  7 modelos treinados e comparados
--  API REST servindo o melhor modelo
-
----
-
-##  Customizações
-
-### Adicionar novos modelos:
-
-Edite `train.py` e adicione no dicionário `models_config`:
-
-```python
-"SeuModelo": {
-    "model": SeuClassificador(),
-    "params": {"param1": [val1, val2], "param2": [val3, val4]}
-}
-```
-
-### Modificar hiperparâmetros:
-
-Ajuste os grids de busca em `train.py`:
-
-```python
-"RandomForest": {
-    "model": RandomForestClassifier(random_state=42),
-    "params": {
-        "n_estimators": [50, 100, 200, 500],
-        "max_depth": [5, 10, 20, None],
-        "min_samples_split": [2, 5, 10]
-    }
-}
-```
-
-### Alterar split de treino/teste:
-
-Em `preprocessing.py`, modifique:
-
-```python
-test_size = 0.3  # 30% para teste
-```
-
----
-
-##  Notas Importantes
-
-1. **Memória**: O balanceamento em streaming permite processar datasets grandes sem problemas
-2. **ONNX**: Formato universal para modelos, possibilita deploy em diversas plataformas
-3. **Grid Search**: Pode ser demorado para modelos complexos; ajuste os grids conforme necessário
-4. **Logs**: Sempre verifique os logs em caso de erros
-5. **API Completa**: 
-   - **Dashboard HTML**: Interface visual completa na página inicial (`/`)
-   - **Multi-modelo**: Todos os modelos ONNX são carregados automaticamente
-   - **Seleção de modelo**: Escolha qual modelo usar para cada predição
-   - **Métricas em tempo real**: Visualize performance e estatísticas dos modelos
-   - **Comparação**: Compare predições de diferentes modelos no mesmo input
-6. **Dashboard Interativo**: Acesse `http://localhost:8000/` para ver:
-   - Comparação visual de todos os modelos
-   - Estatísticas do dataset (EDA)
-   - Melhor modelo destacado
-   - Link direto para testar a API
-
----
 
