@@ -1,0 +1,83 @@
+{
+    "best_model": "RandomForest",
+    "best_f1_macro": 0.9992,
+    "models_metrics": [
+        {
+            "Model": "LogisticRegression",
+            "Dataset": "Test",
+            "Accuracy": 0.9797,
+            "F1_Macro": 0.9797,
+            "Recall": 0.9797,
+            "Precision": 0.9798,
+            "MCC": 0.9779,
+            "Log_Loss": 0.0881,
+            "Overfitting_Gap": -0.0004
+        },
+        {
+            "Model": "KNN",
+            "Dataset": "Test",
+            "Accuracy": 0.9904,
+            "F1_Macro": 0.9904,
+            "Recall": 0.9904,
+            "Precision": 0.9904,
+            "MCC": 0.9895,
+            "Log_Loss": 0.1522,
+            "Overfitting_Gap": 0.0096
+        },
+        {
+            "Model": "DecisionTree",
+            "Dataset": "Test",
+            "Accuracy": 0.9991,
+            "F1_Macro": 0.9991,
+            "Recall": 0.9991,
+            "Precision": 0.9991,
+            "MCC": 0.999,
+            "Log_Loss": 0.0221,
+            "Overfitting_Gap": 0.0008
+        },
+        {
+            "Model": "RandomForest",
+            "Dataset": "Test",
+            "Accuracy": 0.9992,
+            "F1_Macro": 0.9992,
+            "Recall": 0.9992,
+            "Precision": 0.9992,
+            "MCC": 0.9992,
+            "Log_Loss": 0.0098,
+            "Overfitting_Gap": 0.0008
+        },
+        {
+            "Model": "ExtraTrees",
+            "Dataset": "Test",
+            "Accuracy": 0.996,
+            "F1_Macro": 0.996,
+            "Recall": 0.996,
+            "Precision": 0.9961,
+            "MCC": 0.9956,
+            "Log_Loss": 0.0206,
+            "Overfitting_Gap": 0.004
+        },
+        {
+            "Model": "MLP_Sklearn",
+            "Dataset": "Test",
+            "Accuracy": 0.9962,
+            "F1_Macro": 0.9962,
+            "Recall": 0.9962,
+            "Precision": 0.9962,
+            "MCC": 0.9959,
+            "Log_Loss": 0.0177,
+            "Overfitting_Gap": 0.0027
+        },
+        {
+            "Model": "CNN_PyTorch",
+            "Dataset": "Test",
+            "Accuracy": 0.9925,
+            "F1_Macro": 0.9926,
+            "Recall": 0.9925,
+            "Precision": 0.9926,
+            "MCC": 0.9919,
+            "Log_Loss": 0.0267,
+            "Overfitting_Gap": 0.0012
+        }
+    ]
+}
