@@ -1,8 +1,9 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form, File, UploadFile
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+from enum import Enum
 import onnxruntime as rt
 import joblib
 import numpy as np
@@ -65,6 +66,14 @@ app = FastAPI(
 class InputData(BaseModel):
     features: list[float]
     model_name: str = "best_model"
+
+_model_dict = {}
+for _filename in os.listdir("models"):
+    if _filename.endswith(".onnx"):
+        _model_name = _filename.replace(".onnx", "")
+        _model_dict[_model_name] = _model_name
+
+ModelName = Enum('ModelName', _model_dict, type=str)
 
 def softmax(x):
     e_x = np.exp(x - np.max(x))
@@ -291,8 +300,11 @@ def home():
     return HTMLResponse(content=html_content, status_code=200)
 
 @app.post("/predict")
-def predict(data: InputData):
-    requested_model = data.model_name
+def predict(
+    features: str = Form("0,180000000,52,6,60006912,0.000216667,0,0.000433334,0,1,0,0,1,2,1,0,0,0,0,0,0,1,0,0,0,0,0,650,52,52,52,0,650,0,3,4.242640687,3,0,0,3", description="Lista de features separadas por vírgula"),
+    model_name: ModelName = Form(ModelName, description="Selecione o modelo para predição")
+):
+    requested_model = model_name.value
     
     if requested_model not in loaded_models:
         available = list(loaded_models.keys())
@@ -303,11 +315,16 @@ def predict(data: InputData):
     
     session = loaded_models[requested_model]
 
-    if metadata and len(data.features) != metadata["n_features"]:
+    try:
+        feature_list = [float(x.strip()) for x in features.split(',')]
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Features devem ser números separados por vírgula")
+
+    if metadata and len(feature_list) != metadata["n_features"]:
         raise HTTPException(status_code=400, detail=f"Esperado {metadata['n_features']} features.")
 
     try:
-        input_arr = np.array(data.features).reshape(1, -1).astype(np.float32)
+        input_arr = np.array(feature_list).reshape(1, -1).astype(np.float32)
         input_scaled = scaler.transform(input_arr)
         
         input_name = session.get_inputs()[0].name
