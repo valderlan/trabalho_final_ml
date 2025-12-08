@@ -26,6 +26,10 @@
 
 Este projeto aborda o desafio de **classificação de dados** utilizando Machine Learning, com foco em:
 
+### Dataset Original:
+O dataset utilizado está disponível publicamente no Kaggle:
+- **Link**: [IDS DDoS Dataset](https://www.kaggle.com/datasets/adityakadamm/ids-ddos)
+
 ### Problema Principal:
 Desenvolver um sistema completo de classificação que seja capaz de:
 - Lidar com **dados desbalanceados** (classes com quantidades diferentes de amostras)
